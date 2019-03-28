@@ -13,10 +13,11 @@ allprojects {
 ```
 
 2. Add the dependency
+```gradle
 dependencies {
 	        implementation 'com.github.kevinhao426:cropview:1.0.1'
 	}
-
+```
 3. Add this to your layout
 ```xml
 <com.oginotihiro.cropview.CropView
