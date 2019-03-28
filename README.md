@@ -1,18 +1,23 @@
 # cropview
-<img src="https://raw.githubusercontent.com/oginotihiro/cropview/master/screenshots/sample1.png" width="260" />
-<img src="https://raw.githubusercontent.com/oginotihiro/cropview/master/screenshots/sample2.png" width="260" />
-<img src="https://raw.githubusercontent.com/oginotihiro/cropview/master/screenshots/sample3.png" width="260" />
-<img src="https://raw.githubusercontent.com/oginotihiro/cropview/master/screenshots/sample4.png" width="260" />
-<img src="https://raw.githubusercontent.com/oginotihiro/cropview/master/screenshots/sample5.png" width="260" />
 
 ## Usage
 
-1.Add this in your build.gradle file
+1. Add it in your root build.gradle at the end of repositories:
 ```gradle
-compile 'com.oginotihiro:cropview:1.0.0'
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
 ```
 
-2.Add this to your layout
+2. Add the dependency
+dependencies {
+	        implementation 'com.github.kevinhao426:cropview:1.0.1'
+	}
+
+3. Add this to your layout
 ```xml
 <com.oginotihiro.cropview.CropView
      android:layout_width="match_parent"
@@ -20,16 +25,20 @@ compile 'com.oginotihiro:cropview:1.0.0'
      android:id="@+id/cropView" />
 ```
 
-3.Initialize cropview
+4.Initialize cropview
 ```java
 CropView cropView = (CropView) findViewById(R.id.cropView);
 cropView.of(srouceUri)
-        .withAspect(x, y)
+        .withAspect(r)
         .withOutputSize(widht, height)
         .initialize(context);
 ```
+5. To get the Origin Uri
+```java
+cropView.getUri();
+```
 
-4.Get cropped bitmap
+6.Get cropped bitmap
 ```java
 Bitmap croppedBitmap = cropView.getOutput();
 CropUtil.saveOutput(context, saveUri, croppedImage, quality);
