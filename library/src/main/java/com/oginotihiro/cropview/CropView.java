@@ -88,8 +88,7 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
     private Rect viewDrawingRect = new Rect();
 
     private Uri mSource;
-    private int mAspectX = 1;
-    private int mAspectY = 1;
+    private float mAspectRatio = 1f;
     private int mOutputX;
     private int mOutputY;
 
@@ -101,14 +100,12 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
     }
 
     public CropView asSquare() {
-        mAspectX = 1;
-        mAspectY = 1;
+        mAspectRatio = 1f;
         return this;
     }
 
-    public CropView withAspect(int x, int y) {
-        mAspectX = x;
-        mAspectY = y;
+    public CropView withAspect(float aspect) {
+        mAspectRatio = aspect;
         return this;
     }
 
@@ -116,6 +113,10 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         mOutputX = width;
         mOutputY = height;
         return this;
+    }
+
+    public Uri getUri(){
+        return mSource;
     }
 
     public void initialize(Context context) {
@@ -254,38 +255,24 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
 
         float viewWidth = getCropViewWidth();
         float viewHeight = getCropViewHeight();
+        float viewRatio = viewWidth / viewHeight;
         float w = mBitmapDisplayed.getWidth();
         float h = mBitmapDisplayed.getHeight();
 
         mBaseMatrix.reset();
 
-        // We limit up-scaling to 3x otherwise the result may look bad if it's a small icon
-        float widthScale = Math.min(viewWidth / w, 3.0f);
-        float heightScale = Math.min(viewHeight / h, 3.0f);
-        float scale = Math.min(widthScale, heightScale);
+        float cropWidth = viewWidth;
+        float cropHeight = viewHeight;
 
-        // Make the default size about 4/5 of the width or height
-        float cropWidth = Math.min(w, h) * 4 / 5 * scale;
-        float cropHeight = cropWidth;
-
-        if (mAspectX != 0 && mAspectY != 0) {
-            if (mAspectX > mAspectY) {
-                cropHeight = cropWidth * mAspectY / mAspectX;
-            } else {
-                cropWidth = cropHeight * mAspectX / mAspectY;
-            }
+        if (viewRatio < mAspectRatio){
+            cropHeight = cropWidth / mAspectRatio;
+        }else if (viewRatio > mAspectRatio){
+            cropWidth = cropHeight * mAspectRatio;
         }
 
-        // 处理特殊图片，例如全景图
-        float z1 = viewWidth / cropWidth * .6F;
-        float z2 = viewHeight / cropHeight * .6F;
-        float zoom = Math.min(z1, z2);
-
-        if (zoom > 1F) { // 继续放大
-            scale = scale * zoom;
-            cropWidth = cropWidth * zoom;
-            cropHeight = cropHeight * zoom;
-        }
+        float widthScale = cropWidth / w;
+        float heightScale = cropHeight / h;
+        float scale = Math.max(widthScale, heightScale);
 
         float x = (viewWidth - cropWidth) / 2F;
         float y = (viewHeight - cropHeight) / 2F;
