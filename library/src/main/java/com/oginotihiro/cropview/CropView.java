@@ -94,6 +94,16 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
 
     private int mSampleSize;
 
+    private OnCropInfoReadyListener onCropInfoReadyListener;
+
+    public interface OnCropInfoReadyListener{
+        void onCropInfoReady(CropStatusInfo cropStatusInfo);
+    }
+
+    public void setOnCropInfoReadyListener(OnCropInfoReadyListener onCropInfoReadyListener) {
+        this.onCropInfoReadyListener = onCropInfoReadyListener;
+    }
+
     public CropView of(Uri source) {
         mSource = source;
         return this;
@@ -167,6 +177,39 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         );
 
         return CropUtil.decodeRegionCrop(getContext(), mSource, cropRect, mOutputX, mOutputY, mBitmapDisplayed.getRotation());
+    }
+
+    public Bitmap getOutputFromSavedStatus(CropStatusInfo savedStatus){
+        return CropUtil.decodeRegionCrop(getContext(),
+                savedStatus.getSourceUri(),
+                savedStatus.getCropRect(),
+                savedStatus.getOutputX(),
+                savedStatus.getOutputY(),
+                savedStatus.getIfRotation());
+    }
+
+    public CropStatusInfo getStatusInfo() {
+        if (getDrawable() == null || mCropRect == null) {
+            return null;
+        }
+
+        final Matrix drawMatrix = getDrawMatrix();
+        final RectF displayRect = getDisplayRect(drawMatrix);
+
+        final float leftOffset = mCropRect.left - displayRect.left;
+        final float topOffset = mCropRect.top - displayRect.top;
+
+        final float scale = (float) Math.sqrt((float) Math.pow(getValue(drawMatrix, Matrix.MSCALE_X), 2)
+                + (float) Math.pow(getValue(drawMatrix, Matrix.MSKEW_Y), 2));
+
+        Rect cropRect = new Rect(
+                (int) (leftOffset / scale * mSampleSize),
+                (int) (topOffset / scale * mSampleSize),
+                (int) ((leftOffset + mCropRect.width()) / scale * mSampleSize),
+                (int) ((topOffset + mCropRect.height()) / scale * mSampleSize)
+        );
+
+        return new CropStatusInfo(mSource, cropRect, mOutputX, mOutputY, mBitmapDisplayed.getRotation());
     }
 
     public CropView(Context context) {
@@ -320,6 +363,9 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
                     break;
                 case ACTION_CANCEL:
                 case ACTION_UP:
+                    if (onCropInfoReadyListener!=null){
+                        onCropInfoReadyListener.onCropInfoReady(getStatusInfo());
+                    }
                     break;
             }
 
@@ -606,5 +652,61 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
 
     private float dpToPx(float dp) {
         return dp * getContext().getResources().getDisplayMetrics().density;
+    }
+
+    public class CropStatusInfo{
+        Uri sourceUri;
+        Rect cropRect;
+        int outputX;
+        int outputY;
+        int ifRotation;
+
+        public CropStatusInfo(Uri sourceUri, Rect cropRect, int outputX, int outputY, int ifRotation) {
+            this.sourceUri = sourceUri;
+            this.cropRect = cropRect;
+            this.outputX = outputX;
+            this.outputY = outputY;
+            this.ifRotation = ifRotation;
+        }
+
+        public Uri getSourceUri() {
+            return sourceUri;
+        }
+
+        public void setSourceUri(Uri sourceUri) {
+            this.sourceUri = sourceUri;
+        }
+
+        public Rect getCropRect() {
+            return cropRect;
+        }
+
+        public void setCropRect(Rect cropRect) {
+            this.cropRect = cropRect;
+        }
+
+        public int getOutputX() {
+            return outputX;
+        }
+
+        public void setOutputX(int outputX) {
+            this.outputX = outputX;
+        }
+
+        public int getOutputY() {
+            return outputY;
+        }
+
+        public void setOutputY(int outputY) {
+            this.outputY = outputY;
+        }
+
+        public int getIfRotation() {
+            return ifRotation;
+        }
+
+        public void setIfRotation(int ifRotation) {
+            this.ifRotation = ifRotation;
+        }
     }
 }
