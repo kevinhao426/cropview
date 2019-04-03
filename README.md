@@ -15,7 +15,7 @@ allprojects {
 2. Add the dependency
 ```gradle
 dependencies {
-	        implementation 'com.github.kevinhao426:cropview:1.0.1'
+	        implementation 'com.github.kevinhao426:cropview:1.0.3'
 	}
 ```
 3. Add this to your layout
