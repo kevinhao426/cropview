@@ -19,6 +19,7 @@ import static android.view.MotionEvent.ACTION_CANCEL;
 import static android.view.MotionEvent.ACTION_DOWN;
 import static android.view.MotionEvent.ACTION_UP;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,6 +30,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Region;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -91,12 +93,13 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
     private float mAspectRatio = 1f;
     private int mOutputX;
     private int mOutputY;
+    private boolean isRect = true;
 
     private int mSampleSize;
 
     private OnCropInfoReadyListener onCropInfoReadyListener;
 
-    public interface OnCropInfoReadyListener{
+    public interface OnCropInfoReadyListener {
         void onCropInfoReady(CropStatusInfo cropStatusInfo);
     }
 
@@ -111,11 +114,19 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
 
     public CropView asSquare() {
         mAspectRatio = 1f;
+        isRect = true;
+        return this;
+    }
+
+    public CropView asOval() {
+        mAspectRatio = 1f;
+        isRect = false;
         return this;
     }
 
     public CropView withAspect(float aspect) {
         mAspectRatio = aspect;
+        isRect = true;
         return this;
     }
 
@@ -125,7 +136,7 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         return this;
     }
 
-    public Uri getUri(){
+    public Uri getUri() {
         return mSource;
     }
 
@@ -179,7 +190,7 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         return CropUtil.decodeRegionCrop(getContext(), mSource, cropRect, mOutputX, mOutputY, mBitmapDisplayed.getRotation());
     }
 
-    public Bitmap getOutputFromSavedStatus(CropStatusInfo savedStatus){
+    public Bitmap getOutputFromSavedStatus(CropStatusInfo savedStatus) {
         return CropUtil.decodeRegionCrop(getContext(),
                 savedStatus.getSourceUri(),
                 savedStatus.getCropRect(),
@@ -307,9 +318,9 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         float cropWidth = viewWidth;
         float cropHeight = viewHeight;
 
-        if (viewRatio < mAspectRatio){
+        if (viewRatio < mAspectRatio) {
             cropHeight = cropWidth / mAspectRatio;
-        }else if (viewRatio > mAspectRatio){
+        } else if (viewRatio > mAspectRatio) {
             cropWidth = cropHeight * mAspectRatio;
         }
 
@@ -363,7 +374,7 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
                     break;
                 case ACTION_CANCEL:
                 case ACTION_UP:
-                    if (onCropInfoReadyListener!=null){
+                    if (onCropInfoReadyListener != null) {
                         onCropInfoReadyListener.onCropInfoReady(getStatusInfo());
                     }
                     break;
@@ -619,11 +630,18 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         if (mCropRect == null) return;
 
         path.reset();
-        path.addRect(mCropRect.left, mCropRect.top, mCropRect.right, mCropRect.bottom, Path.Direction.CW);
+
+        if (isRect) {
+            path.addRect(mCropRect.left, mCropRect.top, mCropRect.right, mCropRect.bottom, Path.Direction.CW);
+        } else {
+            @SuppressLint("DrawAllocation") RectF tempRect = new RectF();
+            tempRect.set(mCropRect.left + 4, mCropRect.top + 4, mCropRect.right - 4, mCropRect.bottom - 4);
+            path.addOval(tempRect, Path.Direction.CW);
+        }
 
         if (isClipPathSupported(canvas)) {
             getDrawingRect(viewDrawingRect);
-            canvas.clipPath(path, android.graphics.Region.Op.DIFFERENCE);
+            canvas.clipPath(path, Region.Op.DIFFERENCE);
             canvas.drawRect(viewDrawingRect, outsidePaint);
         } else {
             drawOutsideFallback(canvas);
@@ -654,7 +672,7 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         return dp * getContext().getResources().getDisplayMetrics().density;
     }
 
-    public class CropStatusInfo{
+    public class CropStatusInfo {
         Uri sourceUri;
         Rect cropRect;
         int outputX;
