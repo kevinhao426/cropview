@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout btnlay;
     private Button doneBtn;
     private Button cancelBtn;
+    private Button saveBtn;
+    private Button loadBtn;
     private EditRecord record;
 
     private Bitmap croppedBitmap;
@@ -42,9 +44,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnlay = (LinearLayout) findViewById(R.id.btnlay);
         doneBtn = (Button) findViewById(R.id.doneBtn);
         cancelBtn = (Button) findViewById(R.id.cancelBtn);
+        saveBtn = (Button) findViewById(R.id.saveBtn);
+        loadBtn = (Button) findViewById(R.id.loadBtn);
 
         doneBtn.setOnClickListener(this);
         cancelBtn.setOnClickListener(this);
+        saveBtn.setOnClickListener(this);
+        loadBtn.setOnClickListener(this);
     }
 
     @Override
@@ -117,7 +123,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (id == R.id.saveBtn) {
             record = cropView.recordingEditedStatus();
         } else if (id == R.id.loadBtn) {
-            cropView.of(record.getUri()).asOval().initFromRecord(MainActivity.this, record);
+            cropView.of(record.getUri()).asOval().initialize(MainActivity.this);
+            cropView.loadRecording(record);
         }
     }
 

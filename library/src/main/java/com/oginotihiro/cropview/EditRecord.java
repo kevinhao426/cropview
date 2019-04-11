@@ -1,20 +1,19 @@
 package com.oginotihiro.cropview;
 
+import android.graphics.RectF;
 import android.net.Uri;
 
 public class EditRecord {
     private Uri uri;
     private float scale;
-    private float leftOffset;
-    private float topOffset;
-    private int sampleSize;
+    private float transLeft;
+    private float transTop;
 
-    public EditRecord(Uri uri, float scale, float leftOffset, float topOffset, int sampleSize) {
+    public EditRecord(Uri uri, float scale, float transLeft, float transTop) {
         this.uri = uri;
         this.scale = scale;
-        this.leftOffset = leftOffset;
-        this.topOffset = topOffset;
-        this.sampleSize = sampleSize;
+        this.transLeft = transLeft;
+        this.transTop = transTop;
     }
 
     public Uri getUri() {
@@ -33,27 +32,19 @@ public class EditRecord {
         this.scale = scale;
     }
 
-    public float getLeftOffset() {
-        return leftOffset;
+    public float getTransLeft() {
+        return transLeft;
     }
 
-    public void setLeftOffset(float leftOffset) {
-        this.leftOffset = leftOffset;
+    public void setTransLeft(float transLeft) {
+        this.transLeft = transLeft;
     }
 
-    public float getTopOffset() {
-        return topOffset;
+    public float getTransTop() {
+        return transTop;
     }
 
-    public void setTopOffset(float topOffset) {
-        this.topOffset = topOffset;
-    }
-
-    public int getSampleSize() {
-        return sampleSize;
-    }
-
-    public void setSampleSize(int sampleSize) {
-        this.sampleSize = sampleSize;
+    public void setTransTop(float transTop) {
+        this.transTop = transTop;
     }
 }

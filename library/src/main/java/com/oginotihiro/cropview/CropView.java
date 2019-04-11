@@ -164,30 +164,6 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         }
     }
 
-    public void initFromRecord(Context context, EditRecord record){
-        if (mSource != null) {
-            File imageFile = CropUtil.getFromMediaUri(context, mSource);
-
-            InputStream is = null;
-            try {
-                mSampleSize = record.getSampleSize();
-
-                is = context.getContentResolver().openInputStream(mSource);
-                BitmapFactory.Options option = new BitmapFactory.Options();
-                option.inSampleSize = mSampleSize;
-                RotateBitmap rotateBitmap = new RotateBitmap(BitmapFactory.decodeStream(is, null, option), CropUtil.getExifRotation(imageFile));
-
-                if (rotateBitmap != null) {
-                    loadRecording(record);
-                }
-            } catch (IOException e) {
-            } catch (OutOfMemoryError e) {
-            } finally {
-                CropUtil.closeSilently(is);
-            }
-        }
-    }
-
     public Bitmap getOutput() {
         if (getDrawable() == null || mCropRect == null) {
             return null;
@@ -226,47 +202,28 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
     public EditRecord recordingEditedStatus() {
         final Matrix drawMatrix = getDrawMatrix();
         final RectF displayRect = getDisplayRect(drawMatrix);
+        float targetLeft = displayRect.left;
+        float targetTop = displayRect.top;
 
-        final float leftOffset = mCropRect.left - displayRect.left;
-        final float topOffset = mCropRect.top - displayRect.top;
+        float targetWidth = displayRect.right - displayRect.left;
+        float targetHeight = displayRect.bottom - displayRect.top;
 
-        final float scale = (float) Math.sqrt((float) Math.pow(getValue(drawMatrix, Matrix.MSCALE_X), 2)
-                + (float) Math.pow(getValue(drawMatrix, Matrix.MSKEW_Y), 2));
+        float startLeft = (mCropRect.right - mCropRect.left - targetWidth) / 2f;
+        float startTop = (mCropRect.bottom - mCropRect.top - targetHeight) / 2f;
 
-        return new EditRecord(getUri(), scale, leftOffset, topOffset, mSampleSize);
+        float transLeft = targetLeft-startLeft;
+        float transTop = targetTop-startTop ;
+
+        return new EditRecord(getUri(), getScale(), transLeft, transTop);
     }
 
     public void loadRecording(EditRecord record) {
-        if (mBitmapDisplayed.getBitmap() == null) {
-            return;
-        }
 
-        float viewWidth = getCropViewWidth();
-        float viewHeight = getCropViewHeight();
-        float viewRatio = viewWidth / viewHeight;
-        float w = mBitmapDisplayed.getWidth();
-        float h = mBitmapDisplayed.getHeight();
+        mSuppMatrix.postScale(record.getScale(), record.getScale());
 
-        mBaseMatrix.reset();
-
-        float scale = record.getScale();
-
-        mCropRect = new RectF(0, 0, viewWidth, viewHeight);
-
-        mBaseMatrix.postConcat(mBitmapDisplayed.getRotateMatrix());  // 旋转
-        mBaseMatrix.postScale(scale, scale);
-        mBaseMatrix.postTranslate(record.getLeftOffset(), record.getTopOffset());
-
-        mSuppMatrix.reset();
+        mSuppMatrix.postTranslate(record.getTransLeft(), record.getTransTop());
 
         setImageMatrix(getDrawMatrix());
-
-        RectF displayRect = getDisplayRect(mBaseMatrix);
-
-        float wScale = mCropRect.width() / displayRect.width();
-        float hScale = mCropRect.height() / displayRect.height();
-
-        mMinScale = Math.max(wScale, hScale);
     }
 
     public CropStatusInfo getStatusInfo() {
