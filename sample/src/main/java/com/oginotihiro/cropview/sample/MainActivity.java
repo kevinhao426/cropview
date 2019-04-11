@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 
 import com.oginotihiro.cropview.CropUtil;
 import com.oginotihiro.cropview.CropView;
+import com.oginotihiro.cropview.EditRecord;
 
 import java.io.File;
 
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout btnlay;
     private Button doneBtn;
     private Button cancelBtn;
+    private EditRecord record;
 
     private Bitmap croppedBitmap;
 
@@ -112,6 +114,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }.start();
         } else if (id == R.id.cancelBtn) {
             reset();
+        } else if (id == R.id.saveBtn) {
+            record = cropView.recordingEditedStatus();
+        } else if (id == R.id.loadBtn) {
+            cropView.of(record.getUri()).asOval().initFromRecord(MainActivity.this, record);
         }
     }
 

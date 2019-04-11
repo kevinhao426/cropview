@@ -15,10 +15,6 @@
  *******************************************************************************/
 package com.oginotihiro.cropview;
 
-import static android.view.MotionEvent.ACTION_CANCEL;
-import static android.view.MotionEvent.ACTION_DOWN;
-import static android.view.MotionEvent.ACTION_UP;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -49,6 +45,10 @@ import com.oginotihiro.cropview.scrollerproxy.ScrollerProxy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static android.view.MotionEvent.ACTION_CANCEL;
+import static android.view.MotionEvent.ACTION_DOWN;
+import static android.view.MotionEvent.ACTION_UP;
 
 public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayoutListener, OnGestureListener {
     private static final float DEFAULT_MAX_SCALE = 6.0f;
@@ -164,6 +164,30 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         }
     }
 
+    public void initFromRecord(Context context, EditRecord record){
+        if (mSource != null) {
+            File imageFile = CropUtil.getFromMediaUri(context, mSource);
+
+            InputStream is = null;
+            try {
+                mSampleSize = record.getSampleSize();
+
+                is = context.getContentResolver().openInputStream(mSource);
+                BitmapFactory.Options option = new BitmapFactory.Options();
+                option.inSampleSize = mSampleSize;
+                RotateBitmap rotateBitmap = new RotateBitmap(BitmapFactory.decodeStream(is, null, option), CropUtil.getExifRotation(imageFile));
+
+                if (rotateBitmap != null) {
+                    loadRecording(record);
+                }
+            } catch (IOException e) {
+            } catch (OutOfMemoryError e) {
+            } finally {
+                CropUtil.closeSilently(is);
+            }
+        }
+    }
+
     public Bitmap getOutput() {
         if (getDrawable() == null || mCropRect == null) {
             return null;
@@ -197,6 +221,52 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
                 savedStatus.getOutputX(),
                 savedStatus.getOutputY(),
                 savedStatus.getIfRotation());
+    }
+
+    public EditRecord recordingEditedStatus() {
+        final Matrix drawMatrix = getDrawMatrix();
+        final RectF displayRect = getDisplayRect(drawMatrix);
+
+        final float leftOffset = mCropRect.left - displayRect.left;
+        final float topOffset = mCropRect.top - displayRect.top;
+
+        final float scale = (float) Math.sqrt((float) Math.pow(getValue(drawMatrix, Matrix.MSCALE_X), 2)
+                + (float) Math.pow(getValue(drawMatrix, Matrix.MSKEW_Y), 2));
+
+        return new EditRecord(getUri(), scale, leftOffset, topOffset, mSampleSize);
+    }
+
+    public void loadRecording(EditRecord record) {
+        if (mBitmapDisplayed.getBitmap() == null) {
+            return;
+        }
+
+        float viewWidth = getCropViewWidth();
+        float viewHeight = getCropViewHeight();
+        float viewRatio = viewWidth / viewHeight;
+        float w = mBitmapDisplayed.getWidth();
+        float h = mBitmapDisplayed.getHeight();
+
+        mBaseMatrix.reset();
+
+        float scale = record.getScale();
+
+        mCropRect = new RectF(0, 0, viewWidth, viewHeight);
+
+        mBaseMatrix.postConcat(mBitmapDisplayed.getRotateMatrix());  // 旋转
+        mBaseMatrix.postScale(scale, scale);
+        mBaseMatrix.postTranslate(record.getLeftOffset(), record.getTopOffset());
+
+        mSuppMatrix.reset();
+
+        setImageMatrix(getDrawMatrix());
+
+        RectF displayRect = getDisplayRect(mBaseMatrix);
+
+        float wScale = mCropRect.width() / displayRect.width();
+        float hScale = mCropRect.height() / displayRect.height();
+
+        mMinScale = Math.max(wScale, hScale);
     }
 
     public CropStatusInfo getStatusInfo() {
@@ -670,61 +740,5 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
 
     private float dpToPx(float dp) {
         return dp * getContext().getResources().getDisplayMetrics().density;
-    }
-
-    public class CropStatusInfo {
-        Uri sourceUri;
-        Rect cropRect;
-        int outputX;
-        int outputY;
-        int ifRotation;
-
-        public CropStatusInfo(Uri sourceUri, Rect cropRect, int outputX, int outputY, int ifRotation) {
-            this.sourceUri = sourceUri;
-            this.cropRect = cropRect;
-            this.outputX = outputX;
-            this.outputY = outputY;
-            this.ifRotation = ifRotation;
-        }
-
-        public Uri getSourceUri() {
-            return sourceUri;
-        }
-
-        public void setSourceUri(Uri sourceUri) {
-            this.sourceUri = sourceUri;
-        }
-
-        public Rect getCropRect() {
-            return cropRect;
-        }
-
-        public void setCropRect(Rect cropRect) {
-            this.cropRect = cropRect;
-        }
-
-        public int getOutputX() {
-            return outputX;
-        }
-
-        public void setOutputX(int outputX) {
-            this.outputX = outputX;
-        }
-
-        public int getOutputY() {
-            return outputY;
-        }
-
-        public void setOutputY(int outputY) {
-            this.outputY = outputY;
-        }
-
-        public int getIfRotation() {
-            return ifRotation;
-        }
-
-        public void setIfRotation(int ifRotation) {
-            this.ifRotation = ifRotation;
-        }
     }
 }

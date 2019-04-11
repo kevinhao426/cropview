@@ -9,7 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/btnlay"
-        android:visibility="gone"
         android:id="@+id/cropView" />
 
     <ImageView
@@ -25,7 +24,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_alignParentBottom="true"
-        android:visibility="gone"
         android:id="@+id/btnlay">
         <Button
             android:layout_width="match_parent"
@@ -39,5 +37,19 @@
             android:layout_weight="1"
             android:text="done"
             android:id="@+id/doneBtn" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="save"
+            android:id="@+id/saveBtn" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="load"
+            android:id="@+id/loadBtn" />
     </LinearLayout>
 </RelativeLayout>
