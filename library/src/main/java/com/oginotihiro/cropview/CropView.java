@@ -205,23 +205,26 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         float targetLeft = displayRect.left;
         float targetTop = displayRect.top;
 
-        float targetWidth = displayRect.right - displayRect.left;
-        float targetHeight = displayRect.bottom - displayRect.top;
+//        float targetWidth = displayRect.right - displayRect.left;
+//        float targetHeight = displayRect.bottom - displayRect.top;
+//
+//        float startLeft = (mCropRect.right - mCropRect.left - targetWidth) / 2f;
+//        float startTop = (mCropRect.bottom - mCropRect.top - targetHeight) / 2f;
+//
+//        float transLeft = targetLeft-startLeft;
+//        float transTop = targetTop-startTop ;
 
-        float startLeft = (mCropRect.right - mCropRect.left - targetWidth) / 2f;
-        float startTop = (mCropRect.bottom - mCropRect.top - targetHeight) / 2f;
-
-        float transLeft = targetLeft-startLeft;
-        float transTop = targetTop-startTop ;
-
-        return new EditRecord(getUri(), getScale(), transLeft, transTop);
+        return new EditRecord(getUri(), getScale(), targetLeft, targetTop);
     }
 
     public void loadRecording(EditRecord record) {
 
         mSuppMatrix.postScale(record.getScale(), record.getScale());
+        RectF temp = getDisplayRect(getDrawMatrix());
+        float transLeft =   record.getTransLeft() - temp.left;
+        float transTop =  record.getTransTop() - temp.top;
 
-        mSuppMatrix.postTranslate(record.getTransLeft(), record.getTransTop());
+        mSuppMatrix.postTranslate(transLeft, transTop);
 
         setImageMatrix(getDrawMatrix());
     }
