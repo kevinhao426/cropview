@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.oginotihiro.cropview.CropStatusInfo;
 import com.oginotihiro.cropview.CropUtil;
 import com.oginotihiro.cropview.CropView;
 
@@ -27,6 +28,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout btnlay;
     private Button doneBtn;
     private Button cancelBtn;
+    private Button saveBtn;
+    private Button loadBtn;
+    private CropStatusInfo record;
 
     private Bitmap croppedBitmap;
 
@@ -40,9 +44,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnlay = (LinearLayout) findViewById(R.id.btnlay);
         doneBtn = (Button) findViewById(R.id.doneBtn);
         cancelBtn = (Button) findViewById(R.id.cancelBtn);
+        saveBtn = (Button) findViewById(R.id.saveBtn);
+        loadBtn = (Button) findViewById(R.id.loadBtn);
 
         doneBtn.setOnClickListener(this);
         cancelBtn.setOnClickListener(this);
+        saveBtn.setOnClickListener(this);
+        loadBtn.setOnClickListener(this);
     }
 
     @Override
@@ -112,6 +120,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }.start();
         } else if (id == R.id.cancelBtn) {
             reset();
+        } else if (id == R.id.saveBtn) {
+            record = cropView.getStatusInfo();
+        } else if (id == R.id.loadBtn) {
+            cropView.of(record.getSourceUri()).asOval().initialize(MainActivity.this);
+            cropView.loadRecording(record);
         }
     }
 

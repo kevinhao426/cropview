@@ -15,10 +15,6 @@
  *******************************************************************************/
 package com.oginotihiro.cropview;
 
-import static android.view.MotionEvent.ACTION_CANCEL;
-import static android.view.MotionEvent.ACTION_DOWN;
-import static android.view.MotionEvent.ACTION_UP;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -49,6 +45,10 @@ import com.oginotihiro.cropview.scrollerproxy.ScrollerProxy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static android.view.MotionEvent.ACTION_CANCEL;
+import static android.view.MotionEvent.ACTION_DOWN;
+import static android.view.MotionEvent.ACTION_UP;
 
 public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayoutListener, OnGestureListener {
     private static final float DEFAULT_MAX_SCALE = 6.0f;
@@ -199,6 +199,18 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
                 savedStatus.getIfRotation());
     }
 
+    public void loadRecording(CropStatusInfo record) {
+
+        mSuppMatrix.postScale(record.getScale(), record.getScale());
+        RectF temp = getDisplayRect(getDrawMatrix());
+        float transLeft = record.getTargetLeft() - temp.left;
+        float transTop = record.getTargetTop() - temp.top;
+
+        mSuppMatrix.postTranslate(transLeft, transTop);
+
+        setImageMatrix(getDrawMatrix());
+    }
+
     public CropStatusInfo getStatusInfo() {
         if (getDrawable() == null || mCropRect == null) {
             return null;
@@ -219,8 +231,12 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
                 (int) ((leftOffset + mCropRect.width()) / scale * mSampleSize),
                 (int) ((topOffset + mCropRect.height()) / scale * mSampleSize)
         );
+        float targetLeft = displayRect.left;
+        float targetTop = displayRect.top;
 
-        return new CropStatusInfo(mSource, cropRect, mOutputX, mOutputY, mBitmapDisplayed.getRotation());
+        return new CropStatusInfo(mSource, cropRect,
+                mOutputX, mOutputY, mBitmapDisplayed.getRotation(),
+                getScale(), targetLeft, targetTop);
     }
 
     public CropView(Context context) {
@@ -670,61 +686,5 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
 
     private float dpToPx(float dp) {
         return dp * getContext().getResources().getDisplayMetrics().density;
-    }
-
-    public class CropStatusInfo {
-        Uri sourceUri;
-        Rect cropRect;
-        int outputX;
-        int outputY;
-        int ifRotation;
-
-        public CropStatusInfo(Uri sourceUri, Rect cropRect, int outputX, int outputY, int ifRotation) {
-            this.sourceUri = sourceUri;
-            this.cropRect = cropRect;
-            this.outputX = outputX;
-            this.outputY = outputY;
-            this.ifRotation = ifRotation;
-        }
-
-        public Uri getSourceUri() {
-            return sourceUri;
-        }
-
-        public void setSourceUri(Uri sourceUri) {
-            this.sourceUri = sourceUri;
-        }
-
-        public Rect getCropRect() {
-            return cropRect;
-        }
-
-        public void setCropRect(Rect cropRect) {
-            this.cropRect = cropRect;
-        }
-
-        public int getOutputX() {
-            return outputX;
-        }
-
-        public void setOutputX(int outputX) {
-            this.outputX = outputX;
-        }
-
-        public int getOutputY() {
-            return outputY;
-        }
-
-        public void setOutputY(int outputY) {
-            this.outputY = outputY;
-        }
-
-        public int getIfRotation() {
-            return ifRotation;
-        }
-
-        public void setIfRotation(int ifRotation) {
-            this.ifRotation = ifRotation;
-        }
     }
 }
