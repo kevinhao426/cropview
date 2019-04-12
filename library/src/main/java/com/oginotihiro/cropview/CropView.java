@@ -226,11 +226,10 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
 
     public void loadRecording(CropStatusInfo record) {
 
-        mSuppMatrix.postScale(record.getScale(), record.getScale());
         RectF temp = getDisplayRect(getDrawMatrix());
         float transLeft = record.getTargetLeft() - temp.left;
         float transTop = record.getTargetTop() - temp.top;
-
+        mSuppMatrix.postScale(record.getScale(), record.getScale());
         mSuppMatrix.postTranslate(transLeft, transTop);
 
         setImageMatrix(getDrawMatrix());
