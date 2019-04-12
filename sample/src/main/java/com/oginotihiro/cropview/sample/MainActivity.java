@@ -123,8 +123,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (id == R.id.saveBtn) {
             record = cropView.getStatusInfo();
         } else if (id == R.id.loadBtn) {
-            cropView.of(record.getSourceUri()).asOval().initialize(MainActivity.this);
-            cropView.loadRecording(record);
+            // cropView.of(record.getSourceUri()).asOval().initialize(MainActivity.this);
+            // cropView.loadRecording(record);
+            cropView.of(record.getSourceUri()).asOval().initWithRecord(MainActivity.this, record);
         }
     }
 

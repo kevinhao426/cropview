@@ -59,8 +59,8 @@ cropView.setOnCropInfoReadyListener(new CropView.OnCropInfoReadyListener() {
 ```
 8.Reload a previous saved status
 ```java
-//if previous status is about another image, you need to init the CropView for that one
-cropView.of(record.getSourceUri()).asOval().initialize(MainActivity.this);
+//if previous status is about another image, you need to init the CropView first
+cropView.of(record.getSourceUri()).asOval().initWithRecord(MainActivity.this, record);
 
 //This is for reloading previous edit status 
 cropView.loadRecording(record);

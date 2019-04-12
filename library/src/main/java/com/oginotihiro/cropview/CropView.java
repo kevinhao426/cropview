@@ -164,6 +164,31 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
         }
     }
 
+    public void initWithRecord(Context context, CropStatusInfo record){
+        if (mSource != null) {
+            File imageFile = CropUtil.getFromMediaUri(context, mSource);
+
+            InputStream is = null;
+            try {
+                mSampleSize = CropUtil.calculateBitmapSampleSize(context, mSource);
+
+                is = context.getContentResolver().openInputStream(mSource);
+                BitmapFactory.Options option = new BitmapFactory.Options();
+                option.inSampleSize = mSampleSize;
+                RotateBitmap rotateBitmap = new RotateBitmap(BitmapFactory.decodeStream(is, null, option), CropUtil.getExifRotation(imageFile));
+
+                if (rotateBitmap != null) {
+                    setImageRotateBitmap(rotateBitmap);
+                    loadRecording(record);
+                }
+            } catch (IOException e) {
+            } catch (OutOfMemoryError e) {
+            } finally {
+                CropUtil.closeSilently(is);
+            }
+        }
+    }
+
     public Bitmap getOutput() {
         if (getDrawable() == null || mCropRect == null) {
             return null;
