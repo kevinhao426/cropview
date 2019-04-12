@@ -15,7 +15,7 @@ allprojects {
 2. Add the dependency
 ```gradle
 dependencies {
-	        implementation 'com.github.kevinhao426:cropview:1.0.3'
+	        implementation 'com.github.kevinhao426:cropview:1.0.4'
 	}
 ```
 3. Add this to your layout
@@ -44,6 +44,34 @@ cropView.getUri();
 Bitmap croppedBitmap = cropView.getOutput();
 CropUtil.saveOutput(context, saveUri, croppedImage, quality);
 ```
+7.Save the current edited image status 
+```java
+//Manual saving
+ record = cropView.getStatusInfo();
+
+//Auto saving: current status will be automatically saved every time your finger leaves screen 
+cropView.setOnCropInfoReadyListener(new CropView.OnCropInfoReadyListener() {
+                @Override
+                public void onCropInfoReady(CropStatusInfo cropStatusInfo) {
+                    record = cropStatusInfo;
+                }
+            });
+```
+8.Reload a previous saved status
+```java
+//if previous status is about another image, you need to init the CropView for that one
+cropView.of(record.getSourceUri()).asOval().initialize(MainActivity.this);
+
+//This is for reloading previous edit status 
+cropView.loadRecording(record);
+
+//This is getting output from a saved status. If you only want to get the output bit map, loadRecording() is not essential.
+Bitmap croppedBitmap = cropView.getOutputFromSavedStatus(record); 
+
+``` 
+
+
+
 
 ## Compatibility
 Supported on API level 10 and above (2.3+)
