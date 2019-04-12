@@ -199,30 +199,12 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
                 savedStatus.getIfRotation());
     }
 
-    public EditRecord recordingEditedStatus() {
-        final Matrix drawMatrix = getDrawMatrix();
-        final RectF displayRect = getDisplayRect(drawMatrix);
-        float targetLeft = displayRect.left;
-        float targetTop = displayRect.top;
-
-//        float targetWidth = displayRect.right - displayRect.left;
-//        float targetHeight = displayRect.bottom - displayRect.top;
-//
-//        float startLeft = (mCropRect.right - mCropRect.left - targetWidth) / 2f;
-//        float startTop = (mCropRect.bottom - mCropRect.top - targetHeight) / 2f;
-//
-//        float transLeft = targetLeft-startLeft;
-//        float transTop = targetTop-startTop ;
-
-        return new EditRecord(getUri(), getScale(), targetLeft, targetTop);
-    }
-
-    public void loadRecording(EditRecord record) {
+    public void loadRecording(CropStatusInfo record) {
 
         mSuppMatrix.postScale(record.getScale(), record.getScale());
         RectF temp = getDisplayRect(getDrawMatrix());
-        float transLeft =   record.getTransLeft() - temp.left;
-        float transTop =  record.getTransTop() - temp.top;
+        float transLeft = record.getTargetLeft() - temp.left;
+        float transTop = record.getTargetTop() - temp.top;
 
         mSuppMatrix.postTranslate(transLeft, transTop);
 
@@ -249,8 +231,12 @@ public class CropView extends ImageView implements ViewTreeObserver.OnGlobalLayo
                 (int) ((leftOffset + mCropRect.width()) / scale * mSampleSize),
                 (int) ((topOffset + mCropRect.height()) / scale * mSampleSize)
         );
+        float targetLeft = displayRect.left;
+        float targetTop = displayRect.top;
 
-        return new CropStatusInfo(mSource, cropRect, mOutputX, mOutputY, mBitmapDisplayed.getRotation());
+        return new CropStatusInfo(mSource, cropRect,
+                mOutputX, mOutputY, mBitmapDisplayed.getRotation(),
+                getScale(), targetLeft, targetTop);
     }
 
     public CropView(Context context) {
